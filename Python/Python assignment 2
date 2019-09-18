@@ -1,0 +1,240 @@
+Zachary Kuchar		Python Assignment 2
+
+Rewritten version of c++ program
+given a list of islands determine if an entered point
+is inside that islands or not
+
+Code Below:
+#!/usr/bin/env python
+import sys
+
+class point:
+
+	def __init__(self,xcor,ycor):
+		self.x=xcor
+		self.y=ycor
+
+class island:
+
+	def __init__(self,name,points):
+	   self.name=name
+	   self.points=[]
+	   for p in points:
+		self.points.append(p)
+
+	#is middle on the line going from left to right
+	def onSeg(self,left,mid,right):
+	   if mid.x <= max(left.x, right.x) and mid.x >= min(left.x, right.x) and mid.y <= max(left.y, right.y) and mid.y >= min(left.y,right.y):
+	     return True
+	   else:
+	     return False
+
+# To find orientation of the points given.
+# The function returns following values
+# 0 --> p, q and r are colinear
+# 1 --> Clockwise
+# 2 --> Counterclockwise
+#int val = (q.y - p.y) * (r.x - q.x)-(q.x - p.x) * (r.y - q.y);
+	def orientation(self,A,B,C):
+	   val=(C.y-A.y)*(B.x-A.x) - (B.y-A.y)*(C.x-A.x)
+	   if val == 0:
+		return 0 # collinear
+	   elif val > 0:
+		return 2 #counterclockwise
+	   else:
+		return 1 #clockwise
+
+	#determine if line AB intersects line CD
+	def intersect(self,A,B,C,D):
+	#the needed orientations
+	   o1 = self.orientation(A,C,D)
+	   o2 = self.orientation(B,C,D)
+	   o3 = self.orientation(A,B,C)
+	   o4 = self.orientation(A,B,D)
+	#Special cases for when a point is on a line
+	   if o1==0 and self.onSeg(C,A,D):
+		return 2
+	   if o2==0 and self.onSeg(C,B,D):
+		return 2
+	   if o3==0 and self.onSeg(B,A,C):
+		return 2
+	   if o4==0 and self.onSeg(B,A,D):
+		return 2
+	   #the general case
+	   if o1 != o2 and o3 != o4:
+		return 1
+	   return 0;
+
+
+	def inside(self,signal):
+	    numcross=0
+	    p=1
+	    anchor=point(signal.x,signal.y+10000000000000000)
+	    for i in self.points:
+	      #at the last element in the list
+	      if i==self.points[-1]:
+	         cross=self.intersect(anchor,signal,i,self.points[0])
+	         if cross == 1:#found a cross
+		   numcross=numcross+1
+	         if cross == 2:#cross at edge
+	    	  return True
+	         break
+	      else:
+		cross=self.intersect(anchor,signal,i,self.points[p])
+		p=p+1
+		if cross == 1:#found a cross
+		   numcross=numcross+1
+	      	if cross == 2:#cross at edge
+		   return True
+	#determine if number of crosses is divisible by 2
+	#if yes than on the island
+	#if no than not on the island
+	    n=numcross%2
+	    if n==0:
+		return False;
+	    else:
+		return True
+
+
+
+parts=0
+islands=[]
+coord=[]
+#reads in a file passed in through the command line
+isl=open(sys.argv[-1],'r')
+islist=isl.readlines()
+for il in islist:
+     sep=il.split(',')
+     
+     for p in sep:
+             section=parts%2
+             if parts > 1:
+                     if section == 1:
+                           y=p
+			   if x=="":
+				break
+			   if y=="":
+				break
+			   yc=point(float(x),float(y))
+			   coord.append(yc)
+		     else:
+			   x=p
+             parts=parts+1
+     land=island(sep[0],coord)
+     islands.append(land)
+     parts=0
+    #erases contents of coord to add another island
+     coord[:]=[]
+
+isl.close()
+
+
+coordinate=raw_input('enter a corrdinate\n')
+while coordinate != '':
+	partition=coordinate.split(',')
+	c=point(float(partition[0]),float(partition[1]))
+	
+	for p in islands:
+		inisland=p.inside(c)
+		if inisland==True:
+			print (str(c.x)+" "+str(c.y)+" " + p.name)
+			break
+	if inisland==False:
+		print (str(c.x)+" "+str(c.y)+" Open Ocean")
+	coordinate=raw_input('enter a new corrdinate\n')
+	
+
+print ('Test complete')
+
+
+
+Test 1:
+Uses below sets of islands
+Square island,A001,-1.5,-1.5,-1.5,1.5,1.5,1.5,1.5,-1.5,,,,
+Triangle Island,B002,6.00,0.00,8.00,0.00,6.0,2.0,,,,
+Rectangle Island,C003,-5.00,5.00,-5.00,0.00,-7.00,0.00,-7.00,5.00,,,,
+
+
+3,4
+3.0 4.0 Open Ocean
+
+0,1
+0.0 1.0 Square island
+
+0,1.5
+0.0 1.5 Square island
+
+0,1.5
+0.0 1.5 Square island
+
+0,-1.5 
+0.0 -1.5 Square island
+
+7,1
+7.0 1.0 Triangle Island
+
+7,0
+7.0 0.0 Triangle Island
+
+10,10
+10.0 10.0 Open Ocean
+
+4,5
+4.0 5.0 Open Ocean
+
+-5,0
+-5.0 0.0 Rectangle Island
+
+-6,3
+-6.0 3.0 Rectangle Island
+
+-5,-5
+-5.0 -5.0 Open Ocean
+
+
+Test 2 uses below islands from map-test.csv file
+Spiral Island,SP01 0001,0,0,0,1,1,1,1,-1,-1,-1,-1,2,2,2,2,-2,-2,
+-2,-2,2,-2.1,2,-2.1,-2.1,2.1,-2.1,2.1,2.1,-1.1,2.1,
+-1.1,-1.1,1.1,-1.1,1.1,1.1,-0.1,1.1,-0.1,0
+
+Distant Island,D01 0001,10000000,10000000,10000001,
+10000000,10000001,10000001,10000000,10000001																																
+
+First Comb Island,C01 0001,100,50,60,50,60,50.1,90,50.1,90,52,60,52	60,52.1,90,52.1,90,54,60,54,60,54.1,90,54.1,90,56,60,56,60,56.1,100,56.1								
+
+Second Comb Island,C02 0001,40,51,50,51,50,51.1,80,51.1,80,53,50,53.	50,53.1,80,53.1,80,55,50,55,50,55.1,80,55.1,80,57,50,57,50,57.1,40,57.1								
+
+
+0,0
+0.0 0.0 Spiral Island
+
+100,50
+100.0 50.0 First Comb Island
+
+10000000,10000000
+10000000.0 10000000.0 Distant Island
+
+10000000.5,10000000.5
+10000000.5 10000000.5 Distant Island
+
+50.1,90
+50.1 90.0 Open Ocean
+
+90,50.1
+90.0 50.1 First Comb Island
+
+50,51
+50.0 51.0 Second Comb Island
+
+100000000,10000000000
+100000000.0 10000000000.0 Open Ocean
+
+30,50
+30.0 50.0 Open Ocean
+
+90,54.1
+90.0 54.1 First Comb Island
+
+80,55.1
+80.0 55.1 Second Comb Island
+

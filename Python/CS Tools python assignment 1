@@ -1,0 +1,34 @@
+Zachary Kuchar		CS Tools python assignment 1
+
+Using map of islands, print out the number
+of points that make up each island
+
+code below
+>>> points=0
+>>> parts=0
+>>> islands=open("map-test.csv","r")
+>>> mylist=islands.readlines()
+>>> for x in mylist:
+...     sep=x.split(',')
+...     name=sep[0]
+...     for y in sep:
+...             section=parts%2
+...             if parts > 1:
+...                     if section == 0:
+...                             points=points+1
+...             parts=parts+1
+...     print name
+...     print points
+...     points=0
+...     parts=0
+
+sample output
+Spiral Island
+20
+Distant Island
+4
+First Comb Island
+16
+Second Comb Island
+16
+
